@@ -1,28 +1,13 @@
 <?php
 include "conexao.php";
 
-function validarCPF($cpf) {
-    $cpf = preg_replace('/[^0-9]/', '', $cpf);
 
-    if (strlen($cpf) != 11) return false;
-    if (preg_match('/(\d)\1{10}/', $cpf)) return false;
-
-    for ($t = 9; $t < 11; $t++) {
-        for ($d = 0, $c = 0; $c < $t; $c++) {
-            $d += $cpf[$c] * (($t + 1) - $c);
-        }
-        $d = ((10 * $d) % 11) % 10;
-        if ($cpf[$c] != $d) return false;
-    }
-
-    return true;
-}
 
 $mensagem = "";
 
 if (isset($_POST['inserir'])) {
 
-$emailcelular = trim($_POST['emailcelularcpf']);
+$email = trim($_POST['email']);
 $senha = trim($_POST['senha']);
 
 $erro = false;
@@ -37,31 +22,28 @@ if (!$senhaForte) {
 
 /* VALIDAÇÃO EMAIL / TELEFONE / CPF */
 
-$emailValido = filter_var($emailcelular, FILTER_VALIDATE_EMAIL);
+$emailValido = filter_var($email, FILTER_VALIDATE_EMAIL);
 
-$numeroLimpo = preg_replace('/[^0-9]/', '', $emailcelular);
+$numeroLimpo = preg_replace('/[^0-9]/', '', $email);
 
-$telefoneValido = preg_match('/^[0-9]{10,11}$/', $numeroLimpo);
 
-$cpfValido = validarCPF($emailcelular);
 
-if (!$emailValido && !$telefoneValido && !$cpfValido) {
-    $mensagem .= "<p class='erro'>Digite um e-mail, telefone ou CPF válido.</p>";
+
+
+if (!$emailValido ) {
+    $mensagem .= "<p class='erro'>Digite um e-mail.</p>";
     $erro = true;
 }
 
 /* SE NÃO TIVER ERROS */
 if (!$erro) {
 
-if ($cpfValido) {
-    $emailcelular = password_hash($numeroLimpo, PASSWORD_DEFAULT);
-}
 
 $senhaCriptografada = password_hash($senha, PASSWORD_DEFAULT);
 
-$stmt = $conexao->prepare("INSERT INTO cadastro (emailcelularcpf, senha) VALUES (?, ?)");
+$stmt = $conexao->prepare("INSERT INTO cadastro (email, senha) VALUES (?, ?)");
 
-$stmt->bind_param("ss", $emailcelular, $senhaCriptografada);
+$stmt->bind_param("ss", $email, $senhaCriptografada);
 
 if ($stmt->execute()) {
     $mensagem = "<p class='sucesso'>Cadastro realizado com sucesso!</p>";
@@ -162,12 +144,12 @@ margin-bottom:10px;
 
 <form method="post">
 
-<h2>Registro</h2>
+<h2>cadastro</h2>
 
 <?php echo $mensagem; ?>
 
 <label>E-mail, Celular ou CPF</label>
-<input name="emailcelularcpf" type="text" autocomplete="off" required>
+<input name="email" type="text" autocomplete="off" required>
 
 <label>Senha</label>
 <input name="senha" type="password" required>
