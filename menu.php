@@ -1,43 +1,63 @@
-<html>
-<body>
 <?php
-if (isset($_POST['logout']))
-{    session_destroy();    header('Location: login.php');    exit; } ?>
+// cadastrar.php
+session_start();
 
-<form method="post">
-    <button name="logout">Sair</button>
-    <button name="add" type="inserir">cadastro santo</button>
-</form></body>
-</html>
+// Redireciona para login se não estiver logado
+if (!isset($_SESSION['usuario'])) {
+    header("Location: login.php");
+    exit();
+}
 
-<?php
-include "conexao.php";
+include("conexao.php");
 
+// Botão sair
+if (isset($_GET['logout'])) {
+    session_unset();
+    session_destroy();
+    header("Location: login.php");
+    exit();
+}
 
-
-$mensagem = "";
-
+// Cadastrar
 if (isset($_POST['inserir'])) {
+    $coisa = $_POST["coisa"];
 
+    $stmt = $conn->prepare("INSERT INTO menu (coisa) VALUES (?)");
+    $stmt->bind_param("s", $coisa);
 
-$santo = trim($_POST['santo']);
+    if ($stmt->execute()) {
+        echo "Cadastro realizado com sucesso!";
+    } else {
+        echo "Erro ao cadastrar.";
+    }
 
-$erro = false;
-
-
-$stmt = $conexao->prepare("INSERT INTO menu (santo) VALUES (?)");
-
-$stmt->bind_param("s", $santo);
-
-if ($stmt->execute()) {
-    $mensagem = "<p class='sucesso'>Cadastro realizado com sucesso!</p>";
-} else {
-    $mensagem = "<p class='erro'>Erro ao cadastrar: ".$stmt->error."</p>";
+    $stmt->close();
 }
 
-$stmt->close();
-
-}
-
-
+$conn->close();
 ?>
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro</title>
+</head>
+<body>
+
+    <h2>Cadastrar Coisa</h2>
+    <br>
+
+    <a href="cadastrar.php?logout=1">
+        <button type="button">Sair</button>
+    </a>
+
+    <br><br>
+
+    <form method="post">
+        <input type="text" name="coisa" placeholder="Digite algo" required>
+        <button name="inserir" type="submit">Cadastrar</button>
+    </form>
+
+</body>
+</html>
